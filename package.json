@@ -1,0 +1,13 @@
+{
+  "name": "portfolio-frontend",
+  "version": "1.0.0",
+  "description": "Portfolio Frontend",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 3000",
+    "serve": "python -m http.server 3000"
+  },
+  "keywords": ["portfolio", "frontend", "javascript", "html", "css"],
+  "author": "Mada Nithish Reddy",
+  "license": "MIT"
+}

@@ -12,8 +12,16 @@ router.register(r'certifications', views.CertificationViewSet)
 router.register(r'contact-messages', views.ContactMessageViewSet)
 
 urlpatterns = [
+    # Welcome page (root endpoint)
+    path('', views.welcome_view, name='welcome'),
+    
     # Include router URLs
     path('api/', include(router.urls)),
+    
+    # Authentication endpoints
+    path('api/auth/login/', views.AdminLoginView.as_view(), name='auth-login'),
+    path('api/auth/logout/', views.AdminLogoutView.as_view(), name='auth-logout'),
+    path('api/auth/user/', views.CurrentUserView.as_view(), name='current-user'),
     
     # Custom API endpoints
     path('api/skills-by-category/', views.SkillsByCategoryView.as_view(), name='skills-by-category'),
@@ -26,10 +34,4 @@ urlpatterns = [
     
     # Legacy endpoints for frontend compatibility
     path('api/data/', views.portfolio_data_legacy, name='portfolio-data-legacy'),
-    
-    # Frontend asset serving
-    path('<path:path>', views.serve_frontend_assets, name='frontend-assets'),
-    
-    # Frontend serving (root path - must be last)
-    path('', views.serve_frontend, name='frontend'),
 ]

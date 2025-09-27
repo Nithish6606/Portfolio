@@ -4,6 +4,80 @@
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
 const USE_BACKEND = true; // Set to false to use localStorage only
 
+// Authentication utilities
+const AUTH = {
+    getToken: () => localStorage.getItem('auth_token'),
+    setToken: (token) => localStorage.setItem('auth_token', token),
+    removeToken: () => localStorage.removeItem('auth_token'),
+    isAuthenticated: () => !!localStorage.getItem('auth_token'),
+    
+    // Make authenticated API request
+    fetch: async (url, options = {}) => {
+        const token = AUTH.getToken();
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+        
+        if (token) {
+            headers['Authorization'] = `Token ${token}`;
+        }
+        
+        return fetch(url, {
+            ...options,
+            headers
+        });
+    },
+    
+    login: async (username, password) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/login/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                AUTH.setToken(data.token);
+                return { success: true, data };
+            } else {
+                const error = await response.json();
+                return { success: false, error: error.detail || 'Login failed' };
+            }
+        } catch (error) {
+            return { success: false, error: 'Network error' };
+        }
+    },
+    
+    logout: async () => {
+        try {
+            if (AUTH.isAuthenticated()) {
+                await AUTH.fetch(`${API_BASE_URL}/auth/logout/`, { method: 'POST' });
+            }
+            AUTH.removeToken();
+            return { success: true };
+        } catch (error) {
+            AUTH.removeToken(); // Remove token even if logout fails
+            return { success: true };
+        }
+    },
+    
+    getCurrentUser: async () => {
+        try {
+            const response = await AUTH.fetch(`${API_BASE_URL}/auth/user/`);
+            if (response.ok) {
+                return await response.json();
+            }
+            return null;
+        } catch (error) {
+            return null;
+        }
+    }
+};
+
 // Default portfolio data (fallback)
 const DEFAULT_DATA = {
   personalInfo: {

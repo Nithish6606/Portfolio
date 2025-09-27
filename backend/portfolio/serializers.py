@@ -76,13 +76,18 @@ class PortfolioDataSerializer(serializers.Serializer):
 
 
 class AdminLoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
     password = serializers.CharField(write_only=True)
     
-    def validate_password(self, value):
-        from django.conf import settings
-        if value != settings.PORTFOLIO_ADMIN_PASSWORD:
-            raise serializers.ValidationError("Invalid password")
-        return value
+    def validate(self, attrs):
+        """Validate username and password"""
+        username = attrs.get('username')
+        password = attrs.get('password')
+        
+        if not username or not password:
+            raise serializers.ValidationError("Username and password are required")
+        
+        return attrs
 
 
 class PortfolioImportSerializer(serializers.Serializer):

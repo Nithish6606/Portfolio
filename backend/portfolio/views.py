@@ -4,11 +4,13 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db import transaction
+from django.contrib.auth import authenticate
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
 from collections import defaultdict
 import json
 
@@ -22,12 +24,16 @@ from .serializers import (
     ContactMessageSerializer, PortfolioSettingsSerializer,
     PortfolioDataSerializer, AdminLoginSerializer, PortfolioImportSerializer
 )
+from .permissions import (
+    IsAdminOrReadOnly, IsAuthenticatedForWrite, 
+    ContactMessagePermission, IsOwnerOrAdmin
+)
 
 
 class PersonalInfoViewSet(viewsets.ModelViewSet):
     queryset = PersonalInfo.objects.all()
     serializer_class = PersonalInfoSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminOrReadOnly]  # Only admin can edit, everyone can read
 
     def get_object(self):
         # Always return the first (and ideally only) personal info record
@@ -49,7 +55,7 @@ class PersonalInfoViewSet(viewsets.ModelViewSet):
 class SkillViewSet(viewsets.ModelViewSet):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminOrReadOnly]  # Only admin can edit, everyone can read
 
     def get_queryset(self):
         category = self.request.query_params.get('category', None)
@@ -59,7 +65,7 @@ class SkillViewSet(viewsets.ModelViewSet):
 
 
 class SkillsByCategoryView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny]  # Public read access
 
     def get(self, request):
         skills = Skill.objects.all()
@@ -81,13 +87,13 @@ class SkillsByCategoryView(APIView):
 class ExperienceViewSet(viewsets.ModelViewSet):
     queryset = Experience.objects.all()
     serializer_class = ExperienceSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminOrReadOnly]  # Only admin can edit, everyone can read
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminOrReadOnly]  # Only admin can edit, everyone can read
 
     def get_queryset(self):
         featured_only = self.request.query_params.get('featured', None)
@@ -99,24 +105,17 @@ class ProjectViewSet(viewsets.ModelViewSet):
 class CertificationViewSet(viewsets.ModelViewSet):
     queryset = Certification.objects.all()
     serializer_class = CertificationSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminOrReadOnly]  # Only admin can edit, everyone can read
 
 
 class ContactMessageViewSet(viewsets.ModelViewSet):
     queryset = ContactMessage.objects.all()
     serializer_class = ContactMessageSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [ContactMessagePermission]  # Custom permission for contact messages
 
     def create(self, request, *args, **kwargs):
         # Anyone can create a contact message
         return super().create(request, *args, **kwargs)
-
-    def list(self, request, *args, **kwargs):
-        # Only authenticated users can list messages
-        if not request.user.is_authenticated:
-            return Response({'detail': 'Authentication required'}, 
-                          status=status.HTTP_401_UNAUTHORIZED)
-        return super().list(request, *args, **kwargs)
 
 
 class PortfolioDataView(APIView):
@@ -166,28 +165,50 @@ class AdminLoginView(APIView):
     def post(self, request):
         serializer = AdminLoginSerializer(data=request.data)
         if serializer.is_valid():
-            # Set session to indicate admin is logged in
-            request.session['is_admin'] = True
-            return Response({'message': 'Login successful', 'isAdmin': True})
+            username = serializer.validated_data.get('username')
+            password = serializer.validated_data.get('password')
+            
+            # Authenticate user
+            user = authenticate(username=username, password=password)
+            if user and user.is_staff:
+                # Create or get token
+                token, created = Token.objects.get_or_create(user=user)
+                return Response({
+                    'message': 'Login successful',
+                    'token': token.key,
+                    'isAdmin': True,
+                    'user': {
+                        'id': user.id,
+                        'username': user.username,
+                        'email': user.email,
+                        'is_staff': user.is_staff
+                    }
+                })
+            else:
+                return Response(
+                    {'detail': 'Invalid credentials or insufficient permissions'}, 
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AdminLogoutView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        request.session.pop('is_admin', None)
-        return Response({'message': 'Logout successful', 'isAdmin': False})
+        try:
+            # Delete the user's token
+            token = Token.objects.get(user=request.user)
+            token.delete()
+            return Response({'message': 'Logout successful', 'isAdmin': False})
+        except Token.DoesNotExist:
+            return Response({'message': 'Logout successful', 'isAdmin': False})
 
 
 class PortfolioImportView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]  # Only admin users can import
 
     def post(self, request):
-        # Check if user is admin
-        if not request.session.get('is_admin', False):
-            return Response({'detail': 'Admin access required'}, 
-                          status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = PortfolioImportSerializer(data=request.data)
         if not serializer.is_valid():
@@ -266,6 +287,59 @@ def export_portfolio_data(request):
 @permission_classes([AllowAny])
 def health_check(request):
     return Response({'status': 'healthy', 'message': 'Portfolio API is running'})
+
+
+# Welcome page for root endpoint
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def welcome_view(request):
+    return Response({
+        'message': 'Welcome to Portfolio Web App!',
+        'version': '1.0.0',
+        'description': 'Django REST API Backend for Mada Nithish Reddy Portfolio',
+        'authentication': {
+            'required_for_write': True,
+            'token_auth': True,
+            'session_auth': True,
+            'basic_auth': True
+        },
+        'api_endpoints': {
+            'health': '/api/health/',
+            'portfolio_data': '/api/portfolio-data/',
+            'personal_info': '/api/personal-info/',
+            'skills': '/api/skills/',
+            'experience': '/api/experience/',
+            'projects': '/api/projects/',
+            'certifications': '/api/certifications/',
+            'contact_messages': '/api/contact-messages/',
+        },
+        'frontend_url': 'http://localhost:3000',
+        'admin_endpoints': {
+            'login': '/api/admin/login/',
+            'logout': '/api/admin/logout/',
+            'import': '/api/admin/import/',
+            'export': '/api/admin/export/',
+        },
+        'status': 'Running on port 8000'
+    })
+
+
+# Current user information endpoint
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({
+            'id': request.user.pk,
+            'username': request.user.username,
+            'email': request.user.email,
+            'is_staff': request.user.is_staff,
+            'is_superuser': request.user.is_superuser,
+            'first_name': request.user.first_name,
+            'last_name': request.user.last_name,
+            'date_joined': request.user.date_joined,
+            'last_login': request.user.last_login
+        })
 
 
 # Legacy endpoint for frontend compatibility
