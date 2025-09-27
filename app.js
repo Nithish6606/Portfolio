@@ -1,7 +1,15 @@
 // Portfolio Application JavaScript
 
 // Default portfolio data
-const DEFAULT_DATA = {
+c// Application state
+let portfolioData = DEFAULT_DATA;
+
+// DOM Elements
+const loadingScreen = document.getElementById('loading');
+const themeToggle = document.getElementById('theme-toggle');
+const hamburger = document.getElementById('hamburger');
+const navMenu = document.getElementById('nav-menu');
+const portfolioContent = document.getElementById('portfolio-content');ATA = {
   personalInfo: {
     name: "Mada Nithish Reddy",
     title: "Computer Science Engineer",
@@ -64,8 +72,6 @@ const DEFAULT_DATA = {
 
 // Application state
 let portfolioData = JSON.parse(localStorage.getItem('portfolioData')) || DEFAULT_DATA;
-let isAdminLoggedIn = false;
-const ADMIN_PASSWORD = 'admin123';
 
 // DOM Elements
 const loadingScreen = document.getElementById('loading');
@@ -73,9 +79,6 @@ const themeToggle = document.getElementById('theme-toggle');
 const hamburger = document.getElementById('hamburger');
 const navMenu = document.getElementById('nav-menu');
 const portfolioContent = document.getElementById('portfolio-content');
-const adminPanel = document.getElementById('admin-panel');
-const adminLogin = document.getElementById('admin-login');
-const adminDashboard = document.getElementById('admin-dashboard');
 const notification = document.getElementById('notification');
 
 // Initialize application
@@ -84,10 +87,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
-  // Hide loading screen
-  setTimeout(() => {
+  // Hide loading screen immediately
+  if (loadingScreen) {
     loadingScreen.classList.add('hidden');
-  }, 1500);
+  }
 
   // Initialize portfolio content
   loadPortfolioData();
@@ -97,9 +100,6 @@ function initializeApp() {
   
   // Handle routing
   handleRouting();
-  
-  // Initialize admin panel
-  initializeAdminPanel();
 }
 
 function setupEventListeners() {
@@ -116,28 +116,6 @@ function setupEventListeners() {
   
   // Contact form
   document.getElementById('contact-form').addEventListener('submit', handleContactForm);
-  
-  // Admin login
-  document.getElementById('admin-login-form').addEventListener('submit', handleAdminLogin);
-  
-  // Admin navigation
-  document.querySelectorAll('.admin-nav-btn').forEach(btn => {
-    btn.addEventListener('click', handleAdminNav);
-  });
-  
-  // Admin actions
-  document.getElementById('admin-logout').addEventListener('click', adminLogout);
-  document.getElementById('back-to-portfolio').addEventListener('click', () => {
-    window.location.hash = 'home';
-  });
-  document.getElementById('export-data').addEventListener('click', exportData);
-  document.getElementById('import-btn').addEventListener('click', () => {
-    document.getElementById('import-data').click();
-  });
-  document.getElementById('import-data').addEventListener('change', importData);
-  
-  // Personal info form
-  document.getElementById('personal-form').addEventListener('submit', updatePersonalInfo);
   
   // Experience management
   document.getElementById('add-experience').addEventListener('click', addNewExperience);

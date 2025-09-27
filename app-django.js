@@ -69,8 +69,6 @@ const DEFAULT_DATA = {
 
 // Application state
 let portfolioData = DEFAULT_DATA;
-let isAdminLoggedIn = sessionStorage.getItem('isAdminLoggedIn') === 'true';
-const ADMIN_PASSWORD = 'admin123';
 
 // DOM Elements
 const loadingScreen = document.getElementById('loading');
@@ -78,9 +76,6 @@ const themeToggle = document.getElementById('theme-toggle');
 const hamburger = document.getElementById('hamburger');
 const navMenu = document.getElementById('nav-menu');
 const portfolioContent = document.getElementById('portfolio-content');
-const adminPanel = document.getElementById('admin-panel');
-const adminLogin = document.getElementById('admin-login');
-const adminDashboard = document.getElementById('admin-dashboard');
 const notification = document.getElementById('notification');
 
 // API Helper Functions
@@ -149,37 +144,6 @@ async function savePortfolioDataToAPI(data) {
   }
 }
 
-async function adminLoginAPI(password) {
-  if (!USE_BACKEND) {
-    return password === ADMIN_PASSWORD;
-  }
-
-  try {
-    await apiRequest('/admin/login/', {
-      method: 'POST',
-      body: JSON.stringify({ password }),
-    });
-    return true;
-  } catch (error) {
-    console.error('Admin login failed:', error);
-    return false;
-  }
-}
-
-async function adminLogoutAPI() {
-  if (!USE_BACKEND) {
-    return;
-  }
-
-  try {
-    await apiRequest('/admin/logout/', {
-      method: 'POST',
-    });
-  } catch (error) {
-    console.error('Admin logout failed:', error);
-  }
-}
-
 async function submitContactForm(formData) {
   if (!USE_BACKEND) {
     // Simulate form submission for demo
@@ -241,18 +205,13 @@ async function initializeApp() {
   // Set up event listeners
   setupEventListeners();
   
-  // Initialize admin navigation
-  updateAdminNavVisibility();
-  
   // Handle routing
   handleRouting();
   
-  // Hide loading screen after everything is loaded
-  setTimeout(() => {
-    if (loadingScreen) {
-      loadingScreen.classList.add('hidden');
-    }
-  }, 1000);
+  // Hide loading screen immediately
+  if (loadingScreen) {
+    loadingScreen.classList.add('hidden');
+  }
 }
 
 function setupEventListeners() {
@@ -270,37 +229,6 @@ function setupEventListeners() {
   // Contact form
   document.getElementById('contact-form').addEventListener('submit', handleContactForm);
   
-  // Admin login
-  document.getElementById('admin-login-form').addEventListener('submit', handleAdminLogin);
-  
-  // Admin navigation
-  document.querySelectorAll('.admin-nav-btn').forEach(btn => {
-    btn.addEventListener('click', handleAdminNav);
-  });
-  
-  // Admin actions
-  document.getElementById('admin-logout').addEventListener('click', adminLogout);
-  document.getElementById('back-to-portfolio').addEventListener('click', () => {
-    window.location.hash = 'home';
-  });
-  document.getElementById('export-data').addEventListener('click', exportData);
-  document.getElementById('import-btn').addEventListener('click', () => {
-    document.getElementById('import-data').click();
-  });
-  document.getElementById('import-data').addEventListener('change', importData);
-  
-  // Personal info form
-  document.getElementById('personal-form').addEventListener('submit', updatePersonalInfo);
-  
-  // Experience management
-  document.getElementById('add-experience').addEventListener('click', addNewExperience);
-  
-  // Project management
-  document.getElementById('add-project').addEventListener('click', addNewProject);
-  
-  // Certification management
-  document.getElementById('add-certification-btn').addEventListener('click', addNewCertification);
-  
   // Notification close
   document.getElementById('notification-close').addEventListener('click', hideNotification);
   
@@ -310,15 +238,13 @@ function setupEventListeners() {
   // Smooth scrolling for navigation
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
-      if (this.getAttribute('href') !== '#admin') {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
-        }
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
       }
     });
   });
@@ -327,38 +253,14 @@ function setupEventListeners() {
 function handleRouting() {
   const hash = window.location.hash.substring(1) || 'home';
   
-  if (hash === 'admin') {
-    showAdminPanel();
-  } else {
-    hideAdminPanel();
-    
-    // Update active nav link
-    document.querySelectorAll('.nav-link').forEach(link => {
-      link.classList.remove('active');
-    });
-    
-    const activeLink = document.querySelector(`[href="#${hash}"]`);
-    if (activeLink) {
-      activeLink.classList.add('active');
-    }
-  }
+  // Update active nav link
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.classList.remove('active');
+  });
   
-  // Update admin nav visibility in main navigation
-  updateAdminNavVisibility();
-}
-
-function updateAdminNavVisibility() {
-  const adminNavLink = document.querySelector('.admin-link');
-  if (adminNavLink) {
-    if (isAdminLoggedIn) {
-      // Show admin link when logged in
-      adminNavLink.style.display = 'block';
-      adminNavLink.textContent = 'Admin Panel';
-    } else {
-      // Show login link when not logged in
-      adminNavLink.style.display = 'block';
-      adminNavLink.textContent = 'Admin Login';
-    }
+  const activeLink = document.querySelector(`[href="#${hash}"]`);
+  if (activeLink) {
+    activeLink.classList.add('active');
   }
 }
 
@@ -577,32 +479,6 @@ async function handleContactForm(e) {
   } else {
     showNotification(result.message, 'error');
   }
-}
-
-// Admin Panel Functions
-function showAdminPanel() {
-  portfolioContent.style.display = 'none';
-  adminPanel.classList.remove('hidden');
-  
-  // Check session storage for admin login state
-  const sessionAdmin = sessionStorage.getItem('isAdminLoggedIn') === 'true';
-  if (sessionAdmin) {
-    isAdminLoggedIn = true;
-  }
-  
-  if (!isAdminLoggedIn) {
-    adminLogin.classList.remove('hidden');
-    adminDashboard.classList.add('hidden');
-  } else {
-    adminLogin.classList.add('hidden');
-    adminDashboard.classList.remove('hidden');
-    loadAdminData();
-  }
-}
-
-function hideAdminPanel() {
-  portfolioContent.style.display = 'block';
-  adminPanel.classList.add('hidden');
 }
 
 async function handleAdminLogin(e) {
