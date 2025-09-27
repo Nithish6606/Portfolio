@@ -1,8 +1,49 @@
 // Portfolio Application JavaScript with Django Backend Integration
 
 // Configuration
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://127.0.0.1:8000/api' 
+    : 'https://your-domain.com/api';  // Use HTTPS in production
 const USE_BACKEND = true; // Set to false to use localStorage only
+
+// Security utilities
+const Security = {
+    // Sanitize HTML content to prevent XSS
+    sanitizeHTML: (str) => {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    },
+    
+    // Validate email format
+    isValidEmail: (email) => {
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return emailRegex.test(email);
+    },
+    
+    // Validate phone format
+    isValidPhone: (phone) => {
+        const phoneRegex = /^\+?[\d\s\-\(\)]{10,15}$/;
+        return phoneRegex.test(phone);
+    },
+    
+    // Rate limiting for client-side
+    checkRateLimit: (key, maxRequests = 5, timeWindow = 60000) => {
+        const now = Date.now();
+        const requests = JSON.parse(localStorage.getItem(`rate_limit_${key}`) || '[]');
+        
+        // Remove old requests outside time window
+        const recentRequests = requests.filter(time => now - time < timeWindow);
+        
+        if (recentRequests.length >= maxRequests) {
+            return false;
+        }
+        
+        recentRequests.push(now);
+        localStorage.setItem(`rate_limit_${key}`, JSON.stringify(recentRequests));
+        return true;
+    }
+};
 
 // Authentication utilities
 const AUTH = {

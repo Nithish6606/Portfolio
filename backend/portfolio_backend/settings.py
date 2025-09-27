@@ -26,7 +26,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-v89bst-lmend9&y!2ay(x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -166,8 +166,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500",
 ]
 
-# Allow all origins for development (more permissive)
-CORS_ALLOW_ALL_ORIGINS = True
+# Only allow specific origins for security
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
 CORS_ALLOW_CREDENTIALS = True
 
 # Additional CORS headers
@@ -183,5 +183,25 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# Admin password for portfolio management
-PORTFOLIO_ADMIN_PASSWORD = config('PORTFOLIO_ADMIN_PASSWORD', default='admin123')
+# Admin password for portfolio management (MUST be set in production)
+PORTFOLIO_ADMIN_PASSWORD = config('PORTFOLIO_ADMIN_PASSWORD', default=None)
+if not PORTFOLIO_ADMIN_PASSWORD and not DEBUG:
+    raise ValueError("PORTFOLIO_ADMIN_PASSWORD must be set in production environment")
+
+# Security Settings for Production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True, cast=bool)
+    SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=True, cast=bool)
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Rate Limiting Enhancement
+REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
+    'anon': config('ANON_RATE_LIMIT', default='50/hour'),  # Reduced from 100
+    'user': config('USER_RATE_LIMIT', default='500/hour'),  # Reduced from 1000
+    'contact': '10/hour',  # New: Limit contact form submissions
+}

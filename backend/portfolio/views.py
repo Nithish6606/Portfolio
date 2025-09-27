@@ -112,10 +112,36 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
     queryset = ContactMessage.objects.all()
     serializer_class = ContactMessageSerializer
     permission_classes = [ContactMessagePermission]  # Custom permission for contact messages
+    throttle_scope = 'contact'  # Apply contact-specific rate limiting
 
     def create(self, request, *args, **kwargs):
-        # Anyone can create a contact message
+        # Add IP-based tracking for additional security
+        client_ip = self.get_client_ip(request)
+        
+        # Check for recent submissions from same IP
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        recent_messages = ContactMessage.objects.filter(
+            created_at__gte=timezone.now() - timedelta(minutes=10)
+        ).count()
+        
+        if recent_messages >= 3:  # Max 3 messages per 10 minutes globally
+            return Response(
+                {'detail': 'Too many messages submitted recently. Please try again later.'}, 
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+        
         return super().create(request, *args, **kwargs)
+    
+    def get_client_ip(self, request):
+        """Get client IP address"""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
 
 
 class PortfolioDataView(APIView):
@@ -266,12 +292,10 @@ class PortfolioImportView(APIView):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def export_portfolio_data(request):
     """Export portfolio data as JSON"""
-    if not request.session.get('is_admin', False):
-        return Response({'detail': 'Admin access required'}, 
-                       status=status.HTTP_401_UNAUTHORIZED)
+    # Proper permission check is now handled by IsAdminUser decorator
     
     view = PortfolioDataView()
     response = view.get(request)
