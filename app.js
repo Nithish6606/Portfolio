@@ -1,15 +1,7 @@
 // Portfolio Application JavaScript
 
 // Default portfolio data
-c// Application state
-let portfolioData = DEFAULT_DATA;
-
-// DOM Elements
-const loadingScreen = document.getElementById('loading');
-const themeToggle = document.getElementById('theme-toggle');
-const hamburger = document.getElementById('hamburger');
-const navMenu = document.getElementById('nav-menu');
-const portfolioContent = document.getElementById('portfolio-content');ATA = {
+const DEFAULT_DATA = {
   personalInfo: {
     name: "Mada Nithish Reddy",
     title: "Computer Science Engineer",
@@ -72,6 +64,8 @@ const portfolioContent = document.getElementById('portfolio-content');ATA = {
 
 // Application state
 let portfolioData = JSON.parse(localStorage.getItem('portfolioData')) || DEFAULT_DATA;
+let isAdminLoggedIn = false;
+const ADMIN_PASSWORD = 'admin123';
 
 // DOM Elements
 const loadingScreen = document.getElementById('loading');
@@ -80,6 +74,11 @@ const hamburger = document.getElementById('hamburger');
 const navMenu = document.getElementById('nav-menu');
 const portfolioContent = document.getElementById('portfolio-content');
 const notification = document.getElementById('notification');
+
+// Admin panel elements (will be null if not in HTML)
+const adminPanel = document.getElementById('admin-panel');
+const adminLogin = document.getElementById('admin-login');
+const adminDashboard = document.getElementById('admin-dashboard');
 
 // Initialize application
 document.addEventListener('DOMContentLoaded', function() {
@@ -104,10 +103,10 @@ function initializeApp() {
 
 function setupEventListeners() {
   // Theme toggle
-  themeToggle.addEventListener('click', toggleTheme);
+  if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
   
   // Mobile navigation
-  hamburger.addEventListener('click', toggleMobileNav);
+  if (hamburger) hamburger.addEventListener('click', toggleMobileNav);
   
   // Navigation links
   document.querySelectorAll('.nav-link').forEach(link => {
@@ -115,19 +114,24 @@ function setupEventListeners() {
   });
   
   // Contact form
-  document.getElementById('contact-form').addEventListener('submit', handleContactForm);
+  const contactForm = document.getElementById('contact-form');
+  if (contactForm) contactForm.addEventListener('submit', handleContactForm);
   
   // Experience management
-  document.getElementById('add-experience').addEventListener('click', addNewExperience);
+  const addExperienceBtn = document.getElementById('add-experience');
+  if (addExperienceBtn) addExperienceBtn.addEventListener('click', addNewExperience);
   
   // Project management
-  document.getElementById('add-project').addEventListener('click', addNewProject);
+  const addProjectBtn = document.getElementById('add-project');
+  if (addProjectBtn) addProjectBtn.addEventListener('click', addNewProject);
   
   // Certification management
-  document.getElementById('add-certification-btn').addEventListener('click', addNewCertification);
+  const addCertificationBtn = document.getElementById('add-certification-btn');
+  if (addCertificationBtn) addCertificationBtn.addEventListener('click', addNewCertification);
   
   // Notification close
-  document.getElementById('notification-close').addEventListener('click', hideNotification);
+  const notificationClose = document.getElementById('notification-close');
+  if (notificationClose) notificationClose.addEventListener('click', hideNotification);
   
   // Window hash change
   window.addEventListener('hashchange', handleRouting);
@@ -330,22 +334,22 @@ function handleContactForm(e) {
 
 // Admin Panel Functions
 function showAdminPanel() {
-  portfolioContent.style.display = 'none';
-  adminPanel.classList.remove('hidden');
+  if (portfolioContent) portfolioContent.style.display = 'none';
+  if (adminPanel) adminPanel.classList.remove('hidden');
   
   if (!isAdminLoggedIn) {
-    adminLogin.classList.remove('hidden');
-    adminDashboard.classList.add('hidden');
+    if (adminLogin) adminLogin.classList.remove('hidden');
+    if (adminDashboard) adminDashboard.classList.add('hidden');
   } else {
-    adminLogin.classList.add('hidden');
-    adminDashboard.classList.remove('hidden');
+    if (adminLogin) adminLogin.classList.add('hidden');
+    if (adminDashboard) adminDashboard.classList.remove('hidden');
     loadAdminData();
   }
 }
 
 function hideAdminPanel() {
-  portfolioContent.style.display = 'block';
-  adminPanel.classList.add('hidden');
+  if (portfolioContent) portfolioContent.style.display = 'block';
+  if (adminPanel) adminPanel.classList.add('hidden');
 }
 
 function handleAdminLogin(e) {
@@ -355,8 +359,8 @@ function handleAdminLogin(e) {
   
   if (password === ADMIN_PASSWORD) {
     isAdminLoggedIn = true;
-    adminLogin.classList.add('hidden');
-    adminDashboard.classList.remove('hidden');
+    if (adminLogin) adminLogin.classList.add('hidden');
+    if (adminDashboard) adminDashboard.classList.remove('hidden');
     loadAdminData();
     showNotification('Admin login successful!', 'success');
   } else {
@@ -388,13 +392,15 @@ function handleAdminNav(e) {
 function loadAdminData() {
   // Load personal info form
   const personalForm = document.getElementById('personal-form');
-  personalForm.elements['edit-name'].value = portfolioData.personalInfo.name;
-  personalForm.elements['edit-title'].value = portfolioData.personalInfo.title;
-  personalForm.elements['edit-email'].value = portfolioData.personalInfo.email;
-  personalForm.elements['edit-phone'].value = portfolioData.personalInfo.phone;
-  personalForm.elements['edit-github'].value = portfolioData.personalInfo.github;
-  personalForm.elements['edit-linkedin'].value = portfolioData.personalInfo.linkedin;
-  personalForm.elements['edit-bio'].value = portfolioData.personalInfo.bio;
+  if (personalForm) {
+    if (personalForm.elements['edit-name']) personalForm.elements['edit-name'].value = portfolioData.personalInfo.name;
+    if (personalForm.elements['edit-title']) personalForm.elements['edit-title'].value = portfolioData.personalInfo.title;
+    if (personalForm.elements['edit-email']) personalForm.elements['edit-email'].value = portfolioData.personalInfo.email;
+    if (personalForm.elements['edit-phone']) personalForm.elements['edit-phone'].value = portfolioData.personalInfo.phone;
+    if (personalForm.elements['edit-github']) personalForm.elements['edit-github'].value = portfolioData.personalInfo.github;
+    if (personalForm.elements['edit-linkedin']) personalForm.elements['edit-linkedin'].value = portfolioData.personalInfo.linkedin;
+    if (personalForm.elements['edit-bio']) personalForm.elements['edit-bio'].value = portfolioData.personalInfo.bio;
+  }
   
   // Load skills admin
   loadSkillsAdmin();
@@ -419,18 +425,20 @@ function loadSkillsAdmin() {
   
   Object.entries(skillCategories).forEach(([id, category]) => {
     const container = document.getElementById(`${id}-skills`);
-    container.innerHTML = '';
-    
-    const skills = portfolioData.skills[category.key] || [];
-    skills.forEach((skill, index) => {
-      const skillItem = document.createElement('div');
-      skillItem.className = 'skill-item';
-      skillItem.innerHTML = `
-        <span>${skill}</span>
-        <button class="skill-remove" onclick="removeSkill('${category.key}', ${index})">×</button>
-      `;
-      container.appendChild(skillItem);
-    });
+    if (container) {
+      container.innerHTML = '';
+      
+      const skills = portfolioData.skills[category.key] || [];
+      skills.forEach((skill, index) => {
+        const skillItem = document.createElement('div');
+        skillItem.className = 'skill-item';
+        skillItem.innerHTML = `
+          <span>${skill}</span>
+          <button class="skill-remove" onclick="removeSkill('${category.key}', ${index})">×</button>
+        `;
+        container.appendChild(skillItem);
+      });
+    }
   });
 }
 
@@ -487,6 +495,7 @@ function updatePersonalInfo(e) {
 
 function loadExperienceAdmin() {
   const experienceList = document.getElementById('experience-list');
+  if (!experienceList) return;
   experienceList.innerHTML = '';
   
   portfolioData.experience.forEach((exp, index) => {
@@ -590,6 +599,7 @@ function removeExperience(index) {
 
 function loadProjectsAdmin() {
   const projectList = document.getElementById('project-list');
+  if (!projectList) return;
   projectList.innerHTML = '';
   
   portfolioData.projects.forEach((project, index) => {
@@ -688,6 +698,7 @@ function removeProject(index) {
 
 function loadCertificationsAdmin() {
   const certificationList = document.getElementById('certification-list');
+  if (!certificationList) return;
   certificationList.innerHTML = '';
   
   portfolioData.certifications.forEach((cert, index) => {
@@ -778,19 +789,21 @@ function importData(e) {
 
 function showNotification(message, type = 'success') {
   const notificationMessage = document.getElementById('notification-message');
-  notificationMessage.textContent = message;
+  if (notificationMessage) notificationMessage.textContent = message;
   
-  notification.className = `notification ${type === 'error' ? 'error' : ''}`;
-  notification.classList.remove('hidden');
-  
-  // Auto-hide after 5 seconds
-  setTimeout(() => {
-    hideNotification();
-  }, 5000);
+  if (notification) {
+    notification.className = `notification ${type === 'error' ? 'error' : ''}`;
+    notification.classList.remove('hidden');
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      hideNotification();
+    }, 5000);
+  }
 }
 
 function hideNotification() {
-  notification.classList.add('hidden');
+  if (notification) notification.classList.add('hidden');
 }
 
 // Initialize theme on load
@@ -805,6 +818,13 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Make functions globally available for onclick handlers
+window.handleAdminLogin = handleAdminLogin;
+window.adminLogout = adminLogout;
+window.handleAdminNav = handleAdminNav;
+window.updatePersonalInfo = updatePersonalInfo;
+window.exportData = exportData;
+window.importData = importData;
+window.addNewCertification = addNewCertification;
 window.addSkill = addSkill;
 window.removeSkill = removeSkill;
 window.editExperience = editExperience;
