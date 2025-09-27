@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portfolio of Mada Nithish Reddy, a Computer Science Engineer specializing in web development and machine learning.">
+    <meta name="author" content="Mada Nithish Reddy">
+    <title>Mada Nithish Reddy - Portfolio</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Initialize theme immediately to prevent flash -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 
+                (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-color-scheme', savedTheme);
+        })();
+    </script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading" class="loading-screen">
+        <div class="loader"></div>
+        <p>Loading Portfolio...</p>
+    </div>
+
+    <!-- Theme Toggle -->
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+        <span class="theme-icon">🌙</span>
+    </button>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="#home" id="brand-link">Mada Nithish Reddy</a>
+            </div>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#skills" class="nav-link">Skills</a></li>
+                <li><a href="#experience" class="nav-link">Experience</a></li>
+                <li><a href="#projects" class="nav-link">Projects</a></li>
+                <li><a href="#certifications" class="nav-link">Certifications</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Portfolio Content -->
+    <main id="portfolio-content">
+        <!-- Hero Section -->
+        <section id="home" class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1 class="hero-title" id="hero-name">Mada Nithish Reddy</h1>
+                        <p class="hero-subtitle" id="hero-job-title">Computer Science Engineer</p>
+                        <div class="hero-profile">
+                            <img id="hero-profile-pic" src="./profile.jpg" alt="Mada Nithish Reddy - Profile Picture" class="profile-picture">
+                        </div>
+                        <p class="hero-description" id="hero-bio">Recent BTech Computer Science graduate passionate about web development, machine learning, and creating innovative solutions to real-world problems.</p>
+                        <div class="hero-buttons">
+                            <a href="#contact" class="btn btn--primary">Get In Touch</a>
+                            <a href="#projects" class="btn btn--outline">View Projects</a>
+                        </div>
+                        <div class="hero-social">
+                            <a href="#" id="hero-github" target="_blank" rel="noopener noreferrer" class="social-link">GitHub</a>
+                            <a href="#" id="hero-linkedin" target="_blank" rel="noopener noreferrer" class="social-link">LinkedIn</a>
+                            <a href="mailto:" id="hero-email" class="social-link">Email</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="about">
+            <div class="container">
+                <h2 class="section-title">About Me</h2>
+                <div class="about-content">
+                    <div class="about-profile">
+                        <img id="about-profile-pic" src="./profile.jpg" alt="Mada Nithish Reddy - Profile Picture" class="profile-picture">
+                    </div>
+                    <div class="about-text">
+                        <p id="about-bio">Recent BTech Computer Science graduate passionate about web development, machine learning, and creating innovative solutions to real-world problems.</p>
+                        <div class="about-details">
+                            <div class="detail-item">
+                                <strong>Name:</strong> <span id="about-name">Mada Nithish Reddy</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Email:</strong> <span id="about-email">madanithishreddy@gmail.com</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Phone:</strong> <span id="about-phone">+91 9704715088</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="skills">
+            <div class="container">
+                <h2 class="section-title">Skills</h2>
+                <div class="skills-grid" id="skills-grid">
+                    <!-- Skills will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Experience Section -->
+        <section id="experience" class="experience">
+            <div class="container">
+                <h2 class="section-title">Experience</h2>
+                <div class="timeline" id="experience-timeline">
+                    <!-- Experience items will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="projects">
+            <div class="container">
+                <h2 class="section-title">Projects</h2>
+                <div class="projects-grid" id="projects-grid">
+                    <!-- Projects will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Certifications Section -->
+        <section id="certifications" class="certifications">
+            <div class="container">
+                <h2 class="section-title">Certifications</h2>
+                <div class="certifications-list" id="certifications-list">
+                    <!-- Certifications will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="contact">
+            <div class="container">
+                <h2 class="section-title">Get In Touch</h2>
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <h3>Email</h3>
+                            <p id="contact-email">madanithishreddy@gmail.com</p>
+                        </div>
+                        <div class="contact-item">
+                            <h3>Phone</h3>
+                            <p id="contact-phone">+91 9704715088</p>
+                        </div>
+                        <div class="contact-item">
+                            <h3>Social</h3>
+                            <div class="contact-social">
+                                <a href="#" id="contact-github" target="_blank" rel="noopener noreferrer">GitHub</a>
+                                <a href="#" id="contact-linkedin" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                            </div>
+                        </div>
+                    </div>
+                    <form class="contact-form" id="contact-form">
+                        <div class="form-group">
+                            <label for="form-name" class="form-label">Name</label>
+                            <input type="text" id="form-name" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-email" class="form-label">Email</label>
+                            <input type="email" id="form-email" name="email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-subject" class="form-label">Subject</label>
+                            <input type="text" id="form-subject" name="subject" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-message" class="form-label">Message</label>
+                            <textarea id="form-message" name="message" class="form-control" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn--primary btn--full-width">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel" class="admin-panel hidden">
+        <!-- Admin Login -->
+        <div id="admin-login" class="admin-login">
+            <div class="admin-login-container">
+                <div class="admin-login-header">
+                    <h2>🔐 Admin Access</h2>
+                    <p>Welcome back! Please enter your admin password to manage your portfolio.</p>
+                </div>
+                <form id="admin-login-form">
+                    <div class="form-group">
+                        <label for="admin-password" class="form-label">Admin Password</label>
+                        <input type="password" id="admin-password" class="form-control" placeholder="Enter your password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn--primary btn--full-width">Access Admin Panel</button>
+                </form>
+                <div class="admin-features">
+                    <h4>Admin Panel Features:</h4>
+                    <ul>
+                        <li>✏️ Edit personal information</li>
+                        <li>🛠️ Manage skills and technologies</li>
+                        <li>💼 Update work experience</li>
+                        <li>🚀 Add/edit projects</li>
+                        <li>🏆 Manage certifications</li>
+                        <li>📊 Export/import portfolio data</li>
+                        <li>📧 View contact messages</li>
+                    </ul>
+                </div>
+                <p class="admin-hint">💡 Default password: "admin123"</p>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="admin-dashboard" class="admin-dashboard hidden">
+            <header class="admin-header">
+                <h1>Portfolio Admin Dashboard</h1>
+                <div class="admin-actions">
+                    <button id="export-data" class="btn btn--outline btn--sm">Export Data</button>
+                    <input type="file" id="import-data" accept=".json" style="display: none;">
+                    <button id="import-btn" class="btn btn--outline btn--sm">Import Data</button>
+                    <button id="admin-logout" class="btn btn--secondary btn--sm">Logout</button>
+                    <button id="back-to-portfolio" class="btn btn--primary btn--sm">Back to Portfolio</button>
+                </div>
+            </header>
+
+            <nav class="admin-nav">
+                <button class="admin-nav-btn active" data-section="personal">Personal Info</button>
+                <button class="admin-nav-btn" data-section="skills">Skills</button>
+                <button class="admin-nav-btn" data-section="experience">Experience</button>
+                <button class="admin-nav-btn" data-section="projects">Projects</button>
+                <button class="admin-nav-btn" data-section="certifications">Certifications</button>
+            </nav>
+
+            <main class="admin-content">
+                <!-- Personal Info Section -->
+                <section id="admin-personal" class="admin-section active">
+                    <h2>Personal Information</h2>
+                    <form id="personal-form" class="admin-form">
+                        <div class="form-group">
+                            <label for="edit-name" class="form-label">Name</label>
+                            <input type="text" id="edit-name" name="edit-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-title" class="form-label">Title</label>
+                            <input type="text" id="edit-title" name="edit-title" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-email" class="form-label">Email</label>
+                            <input type="email" id="edit-email" name="edit-email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-phone" class="form-label">Phone</label>
+                            <input type="text" id="edit-phone" name="edit-phone" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-github" class="form-label">GitHub URL</label>
+                            <input type="url" id="edit-github" name="edit-github" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-linkedin" class="form-label">LinkedIn URL</label>
+                            <input type="url" id="edit-linkedin" name="edit-linkedin" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-bio" class="form-label">Bio</label>
+                            <textarea id="edit-bio" name="edit-bio" class="form-control" rows="4" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-profile-picture" class="form-label">Profile Picture URL</label>
+                            <input type="url" id="edit-profile-picture" name="edit-profile-picture" class="form-control" placeholder="https://example.com/profile.jpg">
+                            <small class="form-help">Enter a URL to your profile picture or leave empty for default</small>
+                        </div>
+                        <button type="submit" class="btn btn--primary">Update Personal Info</button>
+                    </form>
+                </section>
+
+                <!-- Skills Section -->
+                <section id="admin-skills" class="admin-section">
+                    <h2>Skills Management</h2>
+                    <div class="skills-categories">
+                        <div class="skill-category">
+                            <h3>Programming Languages</h3>
+                            <div id="programming-skills" class="skill-list"></div>
+                            <div class="add-skill-form">
+                                <input type="text" id="new-programming-skill" placeholder="Add programming language..." class="form-control">
+                                <button type="button" class="btn btn--primary btn--sm" onclick="addSkill('programmingLanguages')">Add</button>
+                            </div>
+                        </div>
+                        <div class="skill-category">
+                            <h3>Web Technologies</h3>
+                            <div id="web-skills" class="skill-list"></div>
+                            <div class="add-skill-form">
+                                <input type="text" id="new-web-skill" placeholder="Add web technology..." class="form-control">
+                                <button type="button" class="btn btn--primary btn--sm" onclick="addSkill('webTechnologies')">Add</button>
+                            </div>
+                        </div>
+                        <div class="skill-category">
+                            <h3>Frameworks</h3>
+                            <div id="framework-skills" class="skill-list"></div>
+                            <div class="add-skill-form">
+                                <input type="text" id="new-framework-skill" placeholder="Add framework..." class="form-control">
+                                <button type="button" class="btn btn--primary btn--sm" onclick="addSkill('frameworks')">Add</button>
+                            </div>
+                        </div>
+                        <div class="skill-category">
+                            <h3>Tools</h3>
+                            <div id="tool-skills" class="skill-list"></div>
+                            <div class="add-skill-form">
+                                <input type="text" id="new-tool-skill" placeholder="Add tool..." class="form-control">
+                                <button type="button" class="btn btn--primary btn--sm" onclick="addSkill('tools')">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Experience Section -->
+                <section id="admin-experience" class="admin-section">
+                    <h2>Experience Management</h2>
+                    <button id="add-experience" class="btn btn--primary mb-8">Add New Experience</button>
+                    <div id="experience-list" class="experience-list"></div>
+                </section>
+
+                <!-- Projects Section -->
+                <section id="admin-projects" class="admin-section">
+                    <h2>Projects Management</h2>
+                    <button id="add-project" class="btn btn--primary mb-8">Add New Project</button>
+                    <div id="project-list" class="project-list"></div>
+                </section>
+
+                <!-- Certifications Section -->
+                <section id="admin-certifications" class="admin-section">
+                    <h2>Certifications Management</h2>
+                    <div class="add-certification-form mb-8">
+                        <input type="text" id="new-certification" placeholder="Add certification..." class="form-control">
+                        <button type="button" id="add-certification-btn" class="btn btn--primary">Add Certification</button>
+                    </div>
+                    <div id="certification-list" class="certification-list"></div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification hidden">
+        <p id="notification-message"></p>
+        <button id="notification-close">&times;</button>
+    </div>
+
+    <script src="app-django.js"></script>
+    
+    <!-- Backend Integration Status -->
+    <div id="backend-status" style="position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; z-index: 1000;">
+        <span id="backend-indicator">🔄 Checking API...</span>
+    </div>
+    
+    <script>
+        // Check API health on load
+        fetch('http://127.0.0.1:8000/api/health/')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('backend-indicator').innerHTML = '✅ Django API Connected';
+                setTimeout(() => {
+                    document.getElementById('backend-status').style.display = 'none';
+                }, 3000);
+            })
+            .catch(error => {
+                document.getElementById('backend-indicator').innerHTML = '⚠️ Using Local Storage';
+                console.warn('API not available, using localStorage fallback');
+                setTimeout(() => {
+                    document.getElementById('backend-status').style.display = 'none';
+                }, 3000);
+            });
+    </script>
+</body>
+</html>

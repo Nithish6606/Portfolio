@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>Portfolio Functionality Test</h1>
+    <div id="test-results"></div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000/api';
+        const results = document.getElementById('test-results');
+
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        async function testAPI() {
+            addResult('🔄 Testing API connectivity...', 'info');
+
+            // Test health endpoint
+            try {
+                const healthResponse = await fetch(`${API_BASE_URL}/health/`);
+                const healthData = await healthResponse.json();
+                addResult(`✅ Health Check: ${JSON.stringify(healthData)}`, 'success');
+            } catch (error) {
+                addResult(`❌ Health Check Failed: ${error.message}`, 'error');
+            }
+
+            // Test portfolio data endpoint
+            try {
+                const dataResponse = await fetch(`${API_BASE_URL}/portfolio-data/`);
+                const portfolioData = await dataResponse.json();
+                addResult(`✅ Portfolio Data Loaded: ${Object.keys(portfolioData).join(', ')}`, 'success');
+                
+                // Display data structure
+                addResult(`<h3>Portfolio Data Structure:</h3><pre>${JSON.stringify(portfolioData, null, 2)}</pre>`, 'info');
+                
+                // Test specific sections
+                if (portfolioData.skills) {
+                    const skillCount = Object.values(portfolioData.skills).flat().length;
+                    addResult(`✅ Skills: ${skillCount} total skills found`, 'success');
+                }
+                
+                if (portfolioData.experience) {
+                    addResult(`✅ Experience: ${portfolioData.experience.length} entries found`, 'success');
+                }
+                
+                if (portfolioData.projects) {
+                    addResult(`✅ Projects: ${portfolioData.projects.length} projects found`, 'success');
+                }
+                
+                if (portfolioData.certifications) {
+                    addResult(`✅ Certifications: ${portfolioData.certifications.length} certifications found`, 'success');
+                }
+                
+            } catch (error) {
+                addResult(`❌ Portfolio Data Failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Run tests
+        testAPI();
+    </script>
+</body>
+</html>
