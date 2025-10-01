@@ -1,9 +1,22 @@
 // Portfolio Application JavaScript with Django Backend Integration
 
 // Configuration
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-    ? 'http://127.0.0.1:8000/api' 
-    : 'https://your-domain.com/api';  // Use HTTPS in production
+const API_BASE_URL = (() => {
+    const hostname = window.location.hostname;
+    
+    // Development environment
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://127.0.0.1:8000/api';
+    }
+    
+    // GitHub Pages deployment
+    if (hostname.includes('github.io')) {
+        return 'https://nithish6606.pythonanywhere.com/api';  // Will be updated after PythonAnywhere setup
+    }
+    
+    // Default production
+    return 'https://nithish6606.pythonanywhere.com/api';
+})();
 const USE_BACKEND = true; // Set to false to use localStorage only
 
 // Security utilities

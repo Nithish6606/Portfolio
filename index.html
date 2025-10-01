@@ -205,8 +205,26 @@
     </div>
     
     <script>
+        // Dynamic API URL based on environment
+        const API_BASE_URL = (() => {
+            const hostname = window.location.hostname;
+            
+            // Development environment
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://127.0.0.1:8000/api';
+            }
+            
+            // GitHub Pages deployment
+            if (hostname.includes('github.io')) {
+                return 'https://nithish6606.pythonanywhere.com/api';
+            }
+            
+            // Default production
+            return 'https://nithish6606.pythonanywhere.com/api';
+        })();
+        
         // Check API health on load
-        fetch('http://127.0.0.1:8000/api/health/')
+        fetch(`${API_BASE_URL}/health/`)
             .then(response => response.json())
             .then(data => {
                 document.getElementById('backend-indicator').innerHTML = '✅ Django API Connected';
