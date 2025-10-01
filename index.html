@@ -200,7 +200,7 @@
     <script src="app-django.js"></script>
     
     <!-- Backend Integration Status -->
-    <div id="backend-status" style="position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; z-index: 1000;">
+    <div id="backend-status" style="position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; z-index: 1000; transition: opacity 0.5s ease-out;">
         <span id="backend-indicator">🔄 Checking API...</span>
     </div>
     
@@ -208,37 +208,121 @@
         // Dynamic API URL based on environment
         const API_BASE_URL = (() => {
             const hostname = window.location.hostname;
+            console.log('Current hostname:', hostname);
             
             // Development environment
             if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                console.log('Environment: Development');
                 return 'http://127.0.0.1:8000/api';
             }
             
             // GitHub Pages deployment
             if (hostname.includes('github.io')) {
+                console.log('Environment: GitHub Pages');
                 return 'https://Nithish6606.pythonanywhere.com/api';
             }
             
             // Default production
+            console.log('Environment: Production');
             return 'https://Nithish6606.pythonanywhere.com/api';
         })();
         
-        // Check API health on load
-        fetch(`${API_BASE_URL}/health/`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('backend-indicator').innerHTML = '✅ Django API Connected';
+        console.log('API Base URL configured as:', API_BASE_URL);
+        
+        // Check API health on load with improved timeout and fallback handling
+        const checkAPIHealth = async () => {
+            const indicator = document.getElementById('backend-indicator');
+            const isGitHubPages = window.location.hostname.includes('github.io');
+            
+            console.log(`Checking API health - Environment: ${isGitHubPages ? 'GitHub Pages' : 'Local/Other'}`);
+            console.log(`API URL: ${API_BASE_URL}/health/`);
+            
+            // Much shorter timeout for GitHub Pages to avoid hanging
+            const timeoutDuration = isGitHubPages ? 1500 : 3000;
+            
+            // Set a backup timeout to ensure we don't show "Checking API..." forever
+            const backupTimeout = setTimeout(() => {
+                if (indicator && indicator.innerHTML.includes('Checking API')) {
+                    indicator.innerHTML = isGitHubPages ? '📱 Demo Mode' : '⚠️ Using Local Storage';
+                    console.warn('API health check timed out - falling back to localStorage');
+                }
+            }, timeoutDuration);
+            
+            try {
+                // Create an AbortController for the fetch request
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    controller.abort();
+                    console.log('Fetch request aborted due to timeout');
+                }, timeoutDuration);
+                
+                const fetchOptions = {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'omit',
+                    cache: 'no-cache',
+                    signal: controller.signal
+                };
+                
+                const response = await fetch(`${API_BASE_URL}/health/`, fetchOptions);
+                
+                clearTimeout(timeoutId);
+                clearTimeout(backupTimeout);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    indicator.innerHTML = '✅ Django API Connected';
+                    console.log('API health check successful:', data);
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                clearTimeout(backupTimeout);
+                
+                // More user-friendly error messages based on environment
+                let errorMessage;
+                let logMessage;
+                
+                if (error.name === 'AbortError') {
+                    logMessage = 'API health check timed out';
+                    errorMessage = isGitHubPages ? '📱 Demo Mode' : '⚠️ Using Local Storage';
+                } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    logMessage = 'Network error - API server unreachable';
+                    errorMessage = isGitHubPages ? '📱 Demo Mode' : '⚠️ API Offline';
+                } else if (error.message.includes('CORS')) {
+                    logMessage = 'CORS error - API not configured for cross-origin requests';
+                    errorMessage = isGitHubPages ? '📱 Demo Mode' : '⚠️ CORS Error';
+                } else {
+                    logMessage = `API error: ${error.message}`;
+                    errorMessage = isGitHubPages ? '📱 Demo Mode' : '⚠️ Using Local Storage';
+                }
+                
+                console.warn(logMessage);
+                indicator.innerHTML = errorMessage;
+            } finally {
+                // Hide the status indicator after showing the result
                 setTimeout(() => {
-                    document.getElementById('backend-status').style.display = 'none';
+                    const statusElement = document.getElementById('backend-status');
+                    if (statusElement) {
+                        statusElement.style.opacity = '0';
+                        setTimeout(() => {
+                            statusElement.style.display = 'none';
+                        }, 500);
+                    }
                 }, 3000);
-            })
-            .catch(error => {
-                document.getElementById('backend-indicator').innerHTML = '⚠️ Using Local Storage';
-                console.warn('API not available, using localStorage fallback');
-                setTimeout(() => {
-                    document.getElementById('backend-status').style.display = 'none';
-                }, 3000);
-            });
+            }
+        };
+        
+        // Run the health check when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkAPIHealth);
+        } else {
+            checkAPIHealth();
+        }
     </script>
 </body>
 </html>
