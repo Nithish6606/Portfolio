@@ -105,3 +105,48 @@ jspm_packages/
 # Temporary files
 *.tmp
 *.temp
+
+# UV package manager
+uv.lock
+
+# Portfolio specific
+profile.jpg
+*.jpg
+*.png
+*.gif
+*.jpeg
+*.webp
+*.svg
+
+# Test files (optional - remove if you want to include them)
+*test*.py
+*test*.html
+admin-test.html
+test-portfolio.html
+
+# Batch and PowerShell scripts (optional - remove if you want to include them)
+*.bat
+*.ps1
+
+# Security and sensitive files
+*.key
+*.pem
+*.cert
+*.crt
+*.p12
+*.pfx
+secrets.json
+config.json
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Cache files
+.cache/
+*.cache
+
+# Local configuration files
+local.py
+local_config.py
