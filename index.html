@@ -205,28 +205,8 @@
     </div>
     
     <script>
-        // Dynamic API URL based on environment
-        const API_BASE_URL = (() => {
-            const hostname = window.location.hostname;
-            console.log('Current hostname:', hostname);
-            
-            // Development environment
-            if (hostname === 'localhost' || hostname === '127.0.0.1') {
-                console.log('Environment: Development');
-                return 'http://127.0.0.1:8000/api';
-            }
-            
-            // GitHub Pages deployment
-            if (hostname.includes('github.io')) {
-                console.log('Environment: GitHub Pages');
-                return 'https://Nithish6606.pythonanywhere.com/api';
-            }
-            
-            // Default production
-            console.log('Environment: Production');
-            return 'https://Nithish6606.pythonanywhere.com/api';
-        })();
-        
+        // API_BASE_URL is already declared in app-django.js
+        console.log('Current hostname:', window.location.hostname);
         console.log('API Base URL configured as:', API_BASE_URL);
         
         // Check API health on load with improved timeout and fallback handling

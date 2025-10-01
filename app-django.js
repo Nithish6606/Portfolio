@@ -3,20 +3,26 @@
 // Configuration
 const API_BASE_URL = (() => {
     const hostname = window.location.hostname;
+    console.log('[app-django.js] Current hostname:', hostname);
     
     // Development environment
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        console.log('[app-django.js] Environment: Development');
         return 'http://127.0.0.1:8000/api';
     }
     
     // GitHub Pages deployment
     if (hostname.includes('github.io')) {
-        return 'https://Nithish6606.pythonanywhere.com/api';  // Will be updated after PythonAnywhere setup
+        console.log('[app-django.js] Environment: GitHub Pages');
+        return 'https://Nithish6606.pythonanywhere.com/api';
     }
     
     // Default production
+    console.log('[app-django.js] Environment: Production');
     return 'https://Nithish6606.pythonanywhere.com/api';
 })();
+
+console.log('[app-django.js] API Base URL configured as:', API_BASE_URL);
 const USE_BACKEND = true; // Set to false to use localStorage only
 
 // Security utilities
