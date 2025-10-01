@@ -1,9 +1,9 @@
 # Portfolio Deployment Guide - READY FOR DEPLOYMENT! 🚀
 
 ## 🌐 Live URLs (After Deployment)
-- **Portfolio**: https://nithish6606.github.io/Portfolio
-- **API**: https://nithish6606.pythonanywhere.com/api/
-- **Admin**: https://nithish6606.pythonanywhere.com/admin/
+- **Portfolio**: https://Nithish6606.github.io/Portfolio
+- **API**: https://Nithish6606.pythonanywhere.com/api/
+- **Admin**: https://Nithish6606.pythonanywhere.com/admin/
 
 ## ✅ Pre-Deployment Configuration Complete
 - [x] Frontend configured for GitHub Pages with dynamic API URLs

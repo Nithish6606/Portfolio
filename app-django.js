@@ -11,11 +11,11 @@ const API_BASE_URL = (() => {
     
     // GitHub Pages deployment
     if (hostname.includes('github.io')) {
-        return 'https://nithish6606.pythonanywhere.com/api';  // Will be updated after PythonAnywhere setup
+        return 'https://Nithish6606.pythonanywhere.com/api';  // Will be updated after PythonAnywhere setup
     }
     
     // Default production
-    return 'https://nithish6606.pythonanywhere.com/api';
+    return 'https://Nithish6606.pythonanywhere.com/api';
 })();
 const USE_BACKEND = true; // Set to false to use localStorage only
 

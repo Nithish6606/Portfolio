@@ -26,7 +26,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-v89bst-lmend9&y!2ay(x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,nithish6606.pythonanywhere.com').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,Nithish6606.pythonanywhere.com').split(',')
 
 
 # Application definition
@@ -164,7 +164,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8080",
     "http://localhost:5500",
     "http://127.0.0.1:5500",
-    "https://nithish6606.github.io",  # GitHub Pages URL
+    "https://Nithish6606.github.io",  # GitHub Pages URL
 ]
 
 # Only allow specific origins for security
