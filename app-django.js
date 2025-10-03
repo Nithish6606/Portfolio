@@ -2,35 +2,16 @@
 
 // Secure Configuration using Environment Variables
 const API_BASE_URL = (() => {
-    // Try to get from build-time environment variables first
-    if (typeof process !== 'undefined' && process.env) {
-        return process.env.REACT_APP_API_URL || process.env.VUE_APP_API_URL || process.env.API_URL;
-    }
-    
-    // Try to get from window object (set by build process)
-    if (typeof window !== 'undefined' && window.ENV) {
-        return window.ENV.API_URL;
-    }
-    
-    // Try to get from meta tag (set by server)
-    const metaApiUrl = document.querySelector('meta[name="api-url"]');
-    if (metaApiUrl) {
-        return metaApiUrl.getAttribute('content');
-    }
-    
-    // Fallback based on environment detection
-    const hostname = window.location.hostname;
-    
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'http://127.0.0.1:8000/api';
-    }
-    
-    if (hostname.includes('github.io')) {
-        return 'https://Nithish6606.pythonanywhere.com/api';
-    }
-    
-    // Default fallback
-    return 'https://Nithish6606.pythonanywhere.com/api';
+  // API URL is intentionally hidden for security. Set it via a meta tag or window.ENV at build/deploy time.
+  if (typeof window !== 'undefined' && window.ENV && window.ENV.API_URL) {
+    return window.ENV.API_URL;
+  }
+  const metaApiUrl = document.querySelector('meta[name="api-url"]');
+  if (metaApiUrl) {
+    return metaApiUrl.getAttribute('content');
+  }
+  // If not set, API is unavailable (hidden)
+  return '';
 })();
 
 // Environment detection without exposing details
