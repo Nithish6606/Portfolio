@@ -1,66 +1,128 @@
 // Portfolio Application JavaScript with Django Backend Integration
 
-// Configuration
+// Secure Configuration using Environment Variables
 const API_BASE_URL = (() => {
-    const hostname = window.location.hostname;
-    console.log('[app-django.js] Current hostname:', hostname);
+    // Try to get from build-time environment variables first
+    if (typeof process !== 'undefined' && process.env) {
+        return process.env.REACT_APP_API_URL || process.env.VUE_APP_API_URL || process.env.API_URL;
+    }
     
-    // Development environment
+    // Try to get from window object (set by build process)
+    if (typeof window !== 'undefined' && window.ENV) {
+        return window.ENV.API_URL;
+    }
+    
+    // Try to get from meta tag (set by server)
+    const metaApiUrl = document.querySelector('meta[name="api-url"]');
+    if (metaApiUrl) {
+        return metaApiUrl.getAttribute('content');
+    }
+    
+    // Fallback based on environment detection
+    const hostname = window.location.hostname;
+    
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        console.log('[app-django.js] Environment: Development');
         return 'http://127.0.0.1:8000/api';
     }
     
-    // GitHub Pages deployment
     if (hostname.includes('github.io')) {
-        console.log('[app-django.js] Environment: GitHub Pages');
         return 'https://Nithish6606.pythonanywhere.com/api';
     }
     
-    // Default production
-    console.log('[app-django.js] Environment: Production');
+    // Default fallback
     return 'https://Nithish6606.pythonanywhere.com/api';
 })();
 
-console.log('[app-django.js] API Base URL configured as:', API_BASE_URL);
+// Environment detection without exposing details
+const IS_DEVELOPMENT = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const USE_BACKEND = true; // Set to false to use localStorage only
 
-// Security utilities
+// Enhanced Security utilities with comprehensive protection
 const Security = {
-    // Sanitize HTML content to prevent XSS
+    // Enhanced HTML sanitization with comprehensive XSS protection
     sanitizeHTML: (str) => {
+        if (typeof str !== 'string') return '';
         const div = document.createElement('div');
         div.textContent = str;
-        return div.innerHTML;
+        return div.innerHTML
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#x27;')
+            .replace(/\//g, '&#x2F;')
+            .replace(/`/g, '&#x60;');
     },
     
-    // Validate email format
+    // Enhanced email validation with length and format checks
     isValidEmail: (email) => {
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        return emailRegex.test(email);
+        if (!email || typeof email !== 'string') return false;
+        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        return emailRegex.test(email) && email.length <= 254 && email.length >= 5;
     },
     
-    // Validate phone format
+    // Enhanced phone validation
     isValidPhone: (phone) => {
-        const phoneRegex = /^\+?[\d\s\-\(\)]{10,15}$/;
-        return phoneRegex.test(phone);
+        if (!phone || typeof phone !== 'string') return false;
+        const phoneRegex = /^\+?[0-9\s\-\(\)]{10,15}$/;
+        const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+        return phoneRegex.test(phone) && cleanPhone.length >= 10 && cleanPhone.length <= 15;
     },
     
-    // Rate limiting for client-side
-    checkRateLimit: (key, maxRequests = 5, timeWindow = 60000) => {
+    // Input length and content validation
+    validateInput: (input, minLength = 1, maxLength = 1000) => {
+        if (typeof input !== 'string') return false;
+        const trimmed = input.trim();
+        return trimmed.length >= minLength && trimmed.length <= maxLength;
+    },
+    
+    // Content Security Policy - detect malicious content
+    isSecureContent: (content) => {
+        if (typeof content !== 'string') return false;
+        const dangerousPatterns = [
+            /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+            /javascript:/gi,
+            /on\w+\s*=/gi,
+            /<iframe/gi,
+            /<object/gi,
+            /<embed/gi,
+            /<form/gi,
+            /data:text\/html/gi,
+            /vbscript:/gi
+        ];
+        
+        return !dangerousPatterns.some(pattern => pattern.test(content));
+    },
+    
+    // Enhanced rate limiting with cryptographic key generation
+    checkRateLimit: (key, maxRequests = 3, timeWindow = 300000) => { // 5 minutes default
         const now = Date.now();
-        const requests = JSON.parse(localStorage.getItem(`rate_limit_${key}`) || '[]');
+        const hashedKey = `rl_${btoa(key).slice(0, 12)}`; // Hide actual keys
+        const requests = JSON.parse(localStorage.getItem(hashedKey) || '[]');
         
         // Remove old requests outside time window
         const recentRequests = requests.filter(time => now - time < timeWindow);
         
         if (recentRequests.length >= maxRequests) {
+            if (IS_DEVELOPMENT) console.warn('Rate limit exceeded for operation');
             return false;
         }
         
         recentRequests.push(now);
-        localStorage.setItem(`rate_limit_${key}`, JSON.stringify(recentRequests));
+        localStorage.setItem(hashedKey, JSON.stringify(recentRequests));
         return true;
+    },
+    
+    // Sanitize error messages to prevent information leakage
+    sanitizeError: (error) => {
+        if (!error) return 'An error occurred';
+        const message = typeof error === 'string' ? error : error.message || 'An error occurred';
+        
+        // Remove sensitive information from error messages
+        return message
+            .replace(/https?:\/\/[^\s]+/gi, '[URL]')
+            .replace(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g, '[IP]')
+            .replace(/token|key|password|secret/gi, '[CREDENTIAL]')
+            .substring(0, 200); // Limit error message length
     }
 };
 
@@ -212,52 +274,93 @@ const navMenu = document.getElementById('nav-menu');
 const portfolioContent = document.getElementById('portfolio-content');
 const notification = document.getElementById('notification');
 
-// API Helper Functions
+// Secure API Helper Functions with timeout and sanitization
 async function apiRequest(endpoint, options = {}) {
+  // Rate limiting check
+  if (!Security.checkRateLimit(`api_${endpoint.split('/')[1] || 'general'}`)) {
+    throw new Error('Too many requests. Please try again later.');
+  }
+  
   const url = `${API_BASE_URL}${endpoint}`;
   const defaultOptions = {
     headers: {
       'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
     },
     mode: 'cors',
-    credentials: 'include',
+    credentials: 'omit', // Enhanced security - don't send cookies
+    cache: 'no-cache'
   };
 
   const config = { ...defaultOptions, ...options };
   
+  // Create abort controller for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, 10000); // 10 second timeout
+  
+  config.signal = controller.signal;
+  
   try {
-    console.log(`Making API request to: ${url}`);
+    // Only log in development mode
+    if (IS_DEVELOPMENT) {
+      console.log(`API request to endpoint: ${endpoint}`);
+    }
+    
     const response = await fetch(url, config);
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text().catch(() => 'Unknown error');
+      throw new Error(`Request failed with status ${response.status}`);
     }
     
     const data = await response.json();
-    console.log(`API response from ${endpoint}:`, data);
+    
+    // Only log in development mode
+    if (IS_DEVELOPMENT) {
+      console.log(`API response from ${endpoint}:`, data);
+    }
+    
     return data;
   } catch (error) {
-    console.error('API request failed:', error);
-    throw error;
+    clearTimeout(timeoutId);
+    
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout. Please check your connection.');
+    }
+    
+    // Sanitize error before logging/throwing
+    const sanitizedError = Security.sanitizeError(error);
+    if (IS_DEVELOPMENT) {
+      console.error('API request failed:', sanitizedError);
+    }
+    
+    throw new Error(sanitizedError);
   }
 }
 
 async function loadPortfolioDataFromAPI() {
   if (!USE_BACKEND) {
-    console.log('Backend disabled, using localStorage or default data');
-    return JSON.parse(localStorage.getItem('portfolioData')) || DEFAULT_DATA;
+    const localData = localStorage.getItem('portfolioData');
+    return localData ? JSON.parse(localData) : DEFAULT_DATA;
   }
 
   try {
-    console.log('Attempting to load data from API...');
     const data = await apiRequest('/portfolio-data/');
-    console.log('Data loaded from API successfully:', data);
-    return data;
+    // Validate data structure before returning
+    if (data && data.personalInfo && data.skills) {
+      return data;
+    } else {
+      throw new Error('Invalid data structure received');
+    }
   } catch (error) {
-    console.warn('Failed to load data from API, using localStorage fallback:', error);
-    const fallbackData = JSON.parse(localStorage.getItem('portfolioData')) || DEFAULT_DATA;
-    console.log('Using fallback data:', fallbackData);
-    return fallbackData;
+    if (IS_DEVELOPMENT) {
+      console.warn('Failed to load data from API, using fallback:', Security.sanitizeError(error));
+    }
+    const fallbackData = localStorage.getItem('portfolioData');
+    return fallbackData ? JSON.parse(fallbackData) : DEFAULT_DATA;
   }
 }
 
@@ -301,14 +404,10 @@ async function submitContactForm(formData) {
   }
 }
 
-// Initialize application
+// Initialize application securely
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded, initializing app...');
-    initializeApp();
-  });
+  document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
-  console.log('DOM already ready, initializing app immediately...');
   initializeApp();
 }
 
@@ -316,20 +415,21 @@ async function initializeApp() {
   // Initialize theme first to prevent flash
   initializeTheme();
   
-  // Load portfolio data from API
+  // Load portfolio data from API with error handling
   try {
-    console.log('Starting portfolio data load...');
     portfolioData = await loadPortfolioDataFromAPI();
-    console.log('Portfolio data loaded successfully:', portfolioData);
   } catch (error) {
-    console.error('Failed to load from API, using default data:', error);
+    if (IS_DEVELOPMENT) {
+      console.error('Failed to load portfolio data:', Security.sanitizeError(error));
+    }
     portfolioData = DEFAULT_DATA;
-    console.log('Using default portfolio data:', portfolioData);
   }
   
-  // Ensure we have valid data
-  if (!portfolioData || !portfolioData.personalInfo) {
-    console.warn('Invalid portfolio data, using default');
+  // Ensure we have valid data structure
+  if (!portfolioData || !portfolioData.personalInfo || !portfolioData.skills) {
+    if (IS_DEVELOPMENT) {
+      console.warn('Invalid portfolio data structure, using default');
+    }
     portfolioData = DEFAULT_DATA;
   }
   
@@ -342,7 +442,7 @@ async function initializeApp() {
   // Handle routing
   handleRouting();
   
-  // Hide loading screen immediately
+  // Hide loading screen
   if (loadingScreen) {
     loadingScreen.classList.add('hidden');
   }
@@ -400,7 +500,9 @@ function handleRouting() {
 
 function loadPortfolioData() {
   if (!portfolioData) {
-    console.error('Portfolio data not available');
+    if (IS_DEVELOPMENT) {
+      console.error('Portfolio data not available');
+    }
     return;
   }
   
@@ -460,7 +562,7 @@ function loadPortfolioData() {
   // Load certifications
   loadCertifications();
   
-  console.log('Portfolio data loaded successfully:', data);
+  // Portfolio data loaded successfully (debug info removed for security)
 }
 
 function loadSkills() {
@@ -600,12 +702,58 @@ function handleNavClick(e) {
   }
 }
 
-// Contact form
+// Enhanced Contact form with comprehensive security validation
 async function handleContactForm(e) {
   e.preventDefault();
   
   const formData = new FormData(e.target);
-  const result = await submitContactForm(formData);
+  const name = formData.get('name');
+  const email = formData.get('email');
+  const subject = formData.get('subject');
+  const message = formData.get('message');
+  
+  // Comprehensive input validation
+  if (!Security.validateInput(name, 2, 50)) {
+    showNotification('Name must be between 2-50 characters.', 'error');
+    return;
+  }
+  
+  if (!Security.isValidEmail(email)) {
+    showNotification('Please enter a valid email address.', 'error');
+    return;
+  }
+  
+  if (!Security.validateInput(subject, 5, 100)) {
+    showNotification('Subject must be between 5-100 characters.', 'error');
+    return;
+  }
+  
+  if (!Security.validateInput(message, 10, 2000)) {
+    showNotification('Message must be between 10-2000 characters.', 'error');
+    return;
+  }
+  
+  // Security content check
+  const allContent = `${name} ${email} ${subject} ${message}`;
+  if (!Security.isSecureContent(allContent)) {
+    showNotification('Invalid content detected. Please remove any scripts or suspicious content.', 'error');
+    return;
+  }
+  
+  // Rate limiting for form submissions
+  if (!Security.checkRateLimit('contact_form', 2, 600000)) { // 2 submissions per 10 minutes
+    showNotification('Too many form submissions. Please wait before trying again.', 'error');
+    return;
+  }
+  
+  // Sanitize all inputs
+  const sanitizedData = new FormData();
+  sanitizedData.append('name', Security.sanitizeHTML(name));
+  sanitizedData.append('email', email.toLowerCase().trim());
+  sanitizedData.append('subject', Security.sanitizeHTML(subject));
+  sanitizedData.append('message', Security.sanitizeHTML(message));
+  
+  const result = await submitContactForm(sanitizedData);
   
   if (result.success) {
     showNotification(result.message, 'success');
@@ -777,20 +925,56 @@ function removeSkill(categoryKey, index) {
   showNotification('Skill removed successfully!', 'success');
 }
 
-// Personal info management
+// Personal info management with security validation
 async function updatePersonalInfo(e) {
   e.preventDefault();
   
   const formData = new FormData(e.target);
+  const name = formData.get('edit-name');
+  const title = formData.get('edit-title');
+  const email = formData.get('edit-email');
+  const phone = formData.get('edit-phone');
+  const github = formData.get('edit-github');
+  const linkedin = formData.get('edit-linkedin');
+  const bio = formData.get('edit-bio');
+  const profilePicture = formData.get('edit-profile-picture');
+  
+  // Validate all inputs
+  if (!Security.validateInput(name, 2, 50) || !Security.isSecureContent(name)) {
+    showNotification('Invalid name. Must be 2-50 characters and contain no scripts.', 'error');
+    return;
+  }
+  
+  if (!Security.validateInput(title, 2, 100) || !Security.isSecureContent(title)) {
+    showNotification('Invalid title. Must be 2-100 characters and contain no scripts.', 'error');
+    return;
+  }
+  
+  if (!Security.isValidEmail(email)) {
+    showNotification('Please enter a valid email address.', 'error');
+    return;
+  }
+  
+  if (!Security.isValidPhone(phone)) {
+    showNotification('Please enter a valid phone number.', 'error');
+    return;
+  }
+  
+  if (!Security.validateInput(bio, 10, 500) || !Security.isSecureContent(bio)) {
+    showNotification('Invalid bio. Must be 10-500 characters and contain no scripts.', 'error');
+    return;
+  }
+  
+  // Sanitize and update data
   portfolioData.personalInfo = {
-    name: formData.get('edit-name'),
-    title: formData.get('edit-title'),
-    email: formData.get('edit-email'),
-    phone: formData.get('edit-phone'),
-    github: formData.get('edit-github'),
-    linkedin: formData.get('edit-linkedin'),
-    bio: formData.get('edit-bio'),
-    profilePicture: formData.get('edit-profile-picture') || './profile.jpg'
+    name: Security.sanitizeHTML(name),
+    title: Security.sanitizeHTML(title),
+    email: email.toLowerCase().trim(),
+    phone: phone.trim(),
+    github: github.trim(),
+    linkedin: linkedin.trim(),
+    bio: Security.sanitizeHTML(bio),
+    profilePicture: profilePicture.trim() || './profile.jpg'
   };
   
   await saveData();

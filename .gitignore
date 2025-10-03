@@ -150,3 +150,12 @@ config.json
 # Local configuration files
 local.py
 local_config.py
+
+# Environment variables (keep template files)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.template
+!.env.example
